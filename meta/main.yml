@@ -1,0 +1,19 @@
+galaxy_info:
+  author: Dana Lane <dlane@redhat.com>
+  description:
+    This role takes a previously provisioned bastion-vm and sets it up to
+    install openshift on azure.
+    It also configures the azure infrastructure
+    needed for a successful openshift install on azure.
+  company: Red Hat, Inc.
+  license: GPLv3
+  min_ansible_version: 2.4
+  platforms:
+    - name: EL
+      versions:
+        - 7
+
+  galaxy_tags:
+    - oasis
+
+dependencies: []
