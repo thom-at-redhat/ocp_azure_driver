@@ -3,7 +3,8 @@
 ocp_azure_driver
 ===========
 
-Basic description for ocp_azure_driver
+This role takes a previously provisioned bastion-vm and sets it up to install openshift on azure. It also configures
+the azure infrastructure needed for a successful openshift install on azure.
 
 Requirements
 ------------
@@ -27,6 +28,12 @@ Currently the following variables are supported:
   functionality for privilege escalation, then this is the name of the target
   user to change to.
 
+The following environment variables must be set for this automation to work:
+AZURE_SP_NAME = Service Principal Name
+AZURE_TENANT_ID = Tenant ID
+AZURE_SP_CLIENT_ID = Azure client ID
+AZURE_SUBSCRIPTION_ID = Azure subscription ID
+
 Dependencies
 ------------
 
@@ -36,7 +43,10 @@ Example Playbook
 ----------------
 
 ```yaml
-- hosts: ocp_azure_driver-servers
+- name: Configure driver vm
+  hosts: ocp_azure_driver-servers
+  user: root
+
   roles:
     - role: oasis_roles.ocp_azure_driver
 ```
@@ -49,4 +59,4 @@ GPLv3
 Author Information
 ------------------
 
-Author Name <authoremail@domain.net>
+PIQE Team
