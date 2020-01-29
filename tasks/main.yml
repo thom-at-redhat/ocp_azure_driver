@@ -1,4 +1,3 @@
----
 # tasks file for azure-driver
 - import_role:
     name: oasis_roles.system_repositories
@@ -27,22 +26,27 @@
 # These json files allow us to skip the az login interactive step.
 - name: Copy json files to ~/.azure
   copy:
-    src: "{{ lookup('env', 'WORKSPACE') }}/scenario/css_openshift/config/ansible/roles/azure_infra/files/{{ item }}"
+    src: "{{ lookup('env', 'WORKSPACE') }}\
+/scenario/css_openshift/config/ansible/roles/azure_infra/files/{{ item }}"
     dest: "~/.azure/{{ item }}"
   with_items:
     - azureProfile.json
     - accessTokens.json
 
-# We can't guarantee the SP will be the same, so let's pull a new one every run and update the credentials file
+# We can't guarantee the SP will be the same, so let's pull a new one every run
+# and update the credentials file
 - name: Get new service principal secret
-  command: "az ad sp create-for-rbac --role Contributor --name {{ azure_sp_name }}"
+  command: "az ad sp create-for-rbac --role Contributor \
+            --name {{ azure_sp_name }}"
   register: command_result
   changed_when: command_result.rc == 0
 
-- set_fact:
+- name: Get Service Principal password
+  set_fact:
     azure_sp_password: "{{ (command_result.stdout | from_json).password }}"
 
-- set_fact:
+- name: Get Service Principal Client ID
+  set_fact:
     azure_sp_client_id: "{{ (command_result.stdout | from_json).appId }}"
 
 - name: Configure credentials file
@@ -58,19 +62,25 @@
     mode: '0600'
 
 - name: Add permissions required for Azure cloud Credential Minter
-  command: "az ad app permission add --id {{ azure_sp_client_id }} --api 00000002-0000-0000-c000-000000000000 \
+  command: "az ad app permission add --id {{ azure_sp_client_id }} \
+            --api 00000002-0000-0000-c000-000000000000 \
             --api-permissions 824c81eb-e3f8-4ee6-8f6d-de7f50d565b7=Role"
   register: command_result
   changed_when: command_result.rc == 0
 
 - name: Grant app permissions to SP Client
-  command: "az ad app permission grant --id {{ azure_sp_client_id }} --api 00000002-0000-0000-c000-000000000000"
+  command: "az ad app permission grant --id {{ azure_sp_client_id }}\
+            --api 00000002-0000-0000-c000-000000000000"
   register: command_result
   changed_when: command_result.rc == 0
 
 - name: Assign the user Access Admin role
-  shell: "az role assignment create --role \"User Access Administrator\" --assignee-object-id $(az ad sp list \
-  --filter \"appId eq '{{ azure_sp_client_id }}'\" | jq '.[0].objectId' -r)"
+  shell: |
+         set -o pipefail
+         "az role assignment create --role \"User Access Administrator\"\
+          --assignee-object-id $(az ad sp list \
+          --filter \"appId eq '{{ azure_sp_client_id }}'\" \
+          | jq '.[0].objectId' -r)"
   register: command_results
   changed_when: command_result.rc == 0
 
